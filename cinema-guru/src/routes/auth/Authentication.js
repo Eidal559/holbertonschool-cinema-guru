@@ -4,51 +4,42 @@ import "./auth.css";
 import Login from "./Login";
 import Register from "./Register";
 
-const Authentication = ({ setIsLoggedIn, setUserUsername }) => {
+function Authentication({ setIsLoggedIn, setUserUsername }) {
     const [_switch, setSwitch] = useState(true);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
     const handleSubmit = async (event) => {
-        event.preventDefault(); // Prevent default form submission
-    
-        const endpoint = _switch ? "/api/auth/login" : "/api/auth/register";
-        const payload = { username, password };
-    
+        event.preventDefault();
+        const url = _switch ? "/api/auth/login" : "/api/auth/register";
+        
         try {
-            const response = await axios.post(endpoint, payload);
-            
-            console.log("API Response:", response.data);
+            const response = await axios.post(url, { username, password });
     
-            if (response.data.token) {
-                localStorage.setItem("accessToken", response.data.token);
+            console.log("API Response:", response.data); // ✅ Log API response
+    
+            const token = response.data.token || response.data.accessToken;
+            if (token) {
+                localStorage.setItem("accessToken", token);
                 setUserUsername(username);
                 setIsLoggedIn(true);
+            } else {
+                throw new Error("Token not found in response");
             }
         } catch (error) {
-            console.error("Authentication error:", error.response);
-    
-            if (error.response) {
-                alert(`Error: ${error.response.data.message || "Authentication failed"}`);
-            } else {
-                alert("Network error. Check console for details.");
-            }
+            console.error("Authentication failed:", error.response?.data || error.message);
+            alert(`Authentication failed: ${error.response?.data?.message || "Please try again."}`);
         }
     };
     
+
     return (
         <div className="auth-container">
             <div className="auth-header">
-                <button 
-                    className={_switch ? "active" : ""} 
-                    onClick={() => setSwitch(true)}
-                >
+                <button className={_switch ? "active" : ""} onClick={() => setSwitch(true)}>
                     Sign In
                 </button>
-                <button 
-                    className={!_switch ? "active" : ""} 
-                    onClick={() => setSwitch(false)}
-                >
+                <button className={!_switch ? "active" : ""} onClick={() => setSwitch(false)}>
                     Sign Up
                 </button>
             </div>
@@ -60,7 +51,7 @@ const Authentication = ({ setIsLoggedIn, setUserUsername }) => {
                         password={password}
                         setUsername={setUsername}
                         setPassword={setPassword}
-                        handleSubmit={handleSubmit} // Pass handleSubmit
+                        handleSubmit={handleSubmit} // ✅ Ensure handleSubmit is passed
                     />
                 ) : (
                     <Register
@@ -68,12 +59,12 @@ const Authentication = ({ setIsLoggedIn, setUserUsername }) => {
                         password={password}
                         setUsername={setUsername}
                         setPassword={setPassword}
-                        handleSubmit={handleSubmit} // Pass handleSubmit
+                        handleSubmit={handleSubmit} // ✅ Ensure handleSubmit is passed
                     />
                 )}
             </div>
         </div>
     );
-};
+}
 
 export default Authentication;
