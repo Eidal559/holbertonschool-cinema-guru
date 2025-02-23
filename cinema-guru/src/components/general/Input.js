@@ -1,22 +1,25 @@
-import React from 'react';
-import './general.css';
+import React from "react";
+import "../general/general.css";
 
-export default function Input({ label, type, className, value, setValue, icon, inputAttributes }) {
+const Input = ({ label, type, className, value, setValue, icon, inputAttributes }) => {
     const handleInput = (event) => {
         setValue(event.target.value);
-    }
-    return( 
-        <div className={`input-wrapper ${className}`}>
+    };
+
+    return (
+        <div className={`input-container ${className}`}>
             {label && <label>{label}</label>}
-            <div className="input-container">
+            <div className="input-wrapper">
                 {icon && <span className="icon">{icon}</span>}
-                <input
-                    type={type}
-                    value={value}
-                    onChange={handleInput}
-                    {...inputAttributes}
+                <input 
+                    type={type} 
+                    value={value} 
+                    onChange={handleInput} 
+                    {...inputAttributes} 
                 />
             </div>
         </div>
-);
-}
+    );
+};
+
+export default Input;

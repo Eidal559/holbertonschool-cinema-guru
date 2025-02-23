@@ -1,11 +1,13 @@
-import React from 'react';
-import './general.css';
+import React from "react";
+import "../general/general.css";
 
-export default function Button({ label, className, onClick, icon }) {
+const Button = ({ label, className, onClick, icon }) => {
     return (
         <button className={`button ${className}`} onClick={onClick}>
-            {icon && <span className="icon">{icon}Load More..</span>}
+            {icon && <span className="icon">{icon}</span>}
             {label}
         </button>
     );
-}
+};
+
+export default Button;
