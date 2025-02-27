@@ -2,8 +2,7 @@ import React from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import './navigation.css';
 
-export default function Header({ userUsername, handleSetUserUsername, setIsLoggedIn, logout }) {
-
+export default function Header({ userUsername, setUserUsername, setIsLoggedIn }) {
     return (
         <nav className="navbar">
             <ul>
@@ -11,14 +10,14 @@ export default function Header({ userUsername, handleSetUserUsername, setIsLogge
                     <p id="left">Cinema Guru</p>
                 </li>
                 <li className="picAndName">
-                    <img src="https://picsum.photos/100/100" alt="logo" />
+                    <img src="https://picsum.photos/100/100" alt="User Avatar" />
                     <p>Welcome, {userUsername}</p>
                 </li>
                 <li>
                     <span className="logout" onClick={() => {
-                        logout();
-                        setIsLoggedIn(false);
-                        handleSetUserUsername("");
+                        localStorage.removeItem("accessToken"); // ✅ Remove token
+                        setUserUsername(""); // ✅ Clear username
+                        setIsLoggedIn(false); // ✅ Log out user
                         console.log(`Logout ${userUsername}`);
                     }} >
                         <FontAwesomeIcon icon="sign-out-alt" />
@@ -28,4 +27,4 @@ export default function Header({ userUsername, handleSetUserUsername, setIsLogge
             </ul>
         </nav>
     );
-}  
+}
