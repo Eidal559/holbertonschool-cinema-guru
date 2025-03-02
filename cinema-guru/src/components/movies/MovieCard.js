@@ -9,84 +9,55 @@ import Image from './Image';
 const MovieCard = ({ movie }) => {
     const [isFavorite, setIsFavorite] = useState(false);
     const [isWatchLater, setIsWatchLater] = useState(false);
-    // const [imageError, setImageError] = useState(false);
 
-    const favIcon = <FontAwesomeIcon icon={faStar} />
-    const watchIcon = <FontAwesomeIcon icon={faClock} />
+    const favIcon = <FontAwesomeIcon icon={faStar} />;
+    const watchIcon = <FontAwesomeIcon icon={faClock} />;
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const accessToken = localStorage.getItem('accessToken');
-                if (accessToken) {
-                    const favoriteResponse = await axios.get('http://localhost:8000/api/titles/favorite/', {
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        }
-                    });
-                    const watchLaterResponse = await axios.get('http://localhost:8000/api/titles/watchlater/', {
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        }
-                    });
-                    const favoriteMovies = favoriteResponse.data;
-                    const watchLaterMovies = watchLaterResponse.data;
+                if (!accessToken || !movie.imdbId) return;
 
-                    setIsFavorite(favoriteMovies.some((favMovie) => favMovie.imbdId === movie.imbdId));
-                    setIsWatchLater(watchLaterMovies.some((wlMovie) => wlMovie.imbdId === movie.imbdId));
-                }
+                const headers = { 'Authorization': `Bearer ${accessToken}` };
 
+                const [favoriteResponse, watchLaterResponse] = await Promise.all([
+                    axios.get('http://localhost:8000/api/titles/favorite/', { headers }),
+                    axios.get('http://localhost:8000/api/titles/watchlater/', { headers }),
+                ]);
+
+                const favoriteMovies = favoriteResponse.data;
+                const watchLaterMovies = watchLaterResponse.data;
+
+                setIsFavorite(favoriteMovies.some((fav) => fav.imdbId === movie.imdbId));
+                setIsWatchLater(watchLaterMovies.some((wl) => wl.imdbId === movie.imdbId));
             } catch (error) {
-                console.log(error);
+                console.error("Error fetching user movie data:", error);
             }
         };
 
         fetchData();
-
-    }, [movie]);
+    }, [movie.imdbId]); // Only run effect if `movie.imdbId` changes
 
     const handleClick = async (type) => {
-        const accessToken = localStorage.getItem('accessToken');
-        if (accessToken) {
-            if (type === 'favorite') {
-                if (isFavorite) {
-                    await axios.delete(`http://localhost:8000/api/titles/favorite/${movie.imdbId}`, {
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        }
-                    });
-                    setIsFavorite(false);
-                } else {
-                    await axios.post(`http://localhost:8000/api/titles/favorite/${movie.imdbId}`, {}, {
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        }
-                    });
-                    setIsFavorite(true);
-                }
-            } else if (type === 'watchlater') {
-                if (isWatchLater) {
-                    await axios.delete(`http://localhost:8000/api/titles/watchlater/${movie.imdbId}`, {
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        }
-                    });
-                    setIsWatchLater(false);
-                } else {
-                    await axios.post(`http://localhost:8000/api/titles/watchlater/${movie.imdbId}`, {}, {
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        }
-                    });
-                    setIsWatchLater(true);
-                }
-            }
-        }
-    }
+        try {
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) return;
 
-    // const handleImageError = () => {
-    //     setImageError(!imageError);
-    // }
+            const headers = { 'Authorization': `Bearer ${accessToken}` };
+            const url = `http://localhost:8000/api/titles/${type}/${movie.imdbId}`;
+
+            if (type === 'favorite') {
+                setIsFavorite((prev) => !prev); // Optimistic UI update
+                await axios[isFavorite ? 'delete' : 'post'](url, {}, { headers });
+            } else if (type === 'watchlater') {
+                setIsWatchLater((prev) => !prev); // Optimistic UI update
+                await axios[isWatchLater ? 'delete' : 'post'](url, {}, { headers });
+            }
+        } catch (error) {
+            console.error(`Error updating ${type} status:`, error);
+        }
+    };
 
     return (
         <div className='movieCard'>
@@ -99,11 +70,6 @@ const MovieCard = ({ movie }) => {
                         {watchIcon}
                     </li>
                     <li>
-                        {/* {imageError ? (
-                            <img src={cinemaImg} alt='cinemaImg' />
-                        ) : (
-                            <img src={movie.imageurls[0]} alt='Movie cover' onError={handleImageError} />
-                        )} */}
                         <Image imageUrl={movie.imageurls[0]} fallBackUrl={cinemaImg} />
                     </li>
                     <li className='movieTitle'>
