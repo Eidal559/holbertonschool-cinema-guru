@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import "../movies.css"; // Ensure this file exists and styles are defined
+import "./movies.css"; 
 
-const Tag = ({ genre, filter, genres, setGenres }) => {
-    const [selected, setSelected] = useState(false);
+const Tag = ({ genre, genres, setGenres }) => {
+    const [selected, setSelected] = useState(genres.includes(genre));
 
     const handleTag = () => {
         if (selected) {
-            setGenres(genres.filter((g) => g !== genre)); // Remove genre
+            setGenres(genres.filter(g => g !== genre)); // Remove genre
         } else {
             setGenres([...genres, genre]); // Add genre
         }

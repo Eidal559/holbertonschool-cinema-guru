@@ -21,9 +21,11 @@ const MovieCard = ({ movie }) => {
 
                 const headers = { 'Authorization': `Bearer ${accessToken}` };
 
+                console.log("Fetching movie data for:", movie.imdbId);
+
                 const [favoriteResponse, watchLaterResponse] = await Promise.all([
-                    axios.get('http://localhost:8000/api/titles/favorite/', { headers }),
-                    axios.get('http://localhost:8000/api/titles/watchlater/', { headers }),
+                    axios.get(`http://localhost:8000/api/titles/favorite/`, { headers }),
+                    axios.get(`http://localhost:8000/api/titles/watchlater/`, { headers })
                 ]);
 
                 const favoriteMovies = favoriteResponse.data;
@@ -32,12 +34,12 @@ const MovieCard = ({ movie }) => {
                 setIsFavorite(favoriteMovies.some((fav) => fav.imdbId === movie.imdbId));
                 setIsWatchLater(watchLaterMovies.some((wl) => wl.imdbId === movie.imdbId));
             } catch (error) {
-                console.error("Error fetching user movie data:", error);
+                console.error("Error fetching movie data:", error);
             }
         };
 
         fetchData();
-    }, [movie.imdbId]); // Only run effect if `movie.imdbId` changes
+    }, [movie.imdbId]);
 
     const handleClick = async (type) => {
         try {
@@ -45,13 +47,15 @@ const MovieCard = ({ movie }) => {
             if (!accessToken) return;
 
             const headers = { 'Authorization': `Bearer ${accessToken}` };
-            const url = `http://localhost:8000/api/titles/${type}/${movie.imdbId}`;
+            const url = `http://localhost:8000/api/titles/${type}/${movie.imdbId}/`;
+
+            console.log(`Updating ${type} status for:`, movie.imdbId);
 
             if (type === 'favorite') {
-                setIsFavorite((prev) => !prev); // Optimistic UI update
+                setIsFavorite((prev) => !prev);
                 await axios[isFavorite ? 'delete' : 'post'](url, {}, { headers });
             } else if (type === 'watchlater') {
-                setIsWatchLater((prev) => !prev); // Optimistic UI update
+                setIsWatchLater((prev) => !prev);
                 await axios[isWatchLater ? 'delete' : 'post'](url, {}, { headers });
             }
         } catch (error) {
@@ -63,10 +67,18 @@ const MovieCard = ({ movie }) => {
         <div className='movieCard'>
             <ul className='movieCardList'>
                 <div>
-                    <li style={{ color: isFavorite ? 'red' : 'white' }} onClick={() => handleClick("favorite")} className='movieCardIcons'>
+                    <li 
+                        style={{ color: isFavorite ? 'red' : 'white' }} 
+                        onClick={() => handleClick("favorite")} 
+                        className='movieCardIcons'
+                    >
                         {favIcon}
                     </li>
-                    <li style={{ color: isWatchLater ? 'red' : 'white' }} onClick={() => handleClick("watchlater")} className='movieCardIcons2'>
+                    <li 
+                        style={{ color: isWatchLater ? 'red' : 'white' }} 
+                        onClick={() => handleClick("watchlater")} 
+                        className='movieCardIcons2'
+                    >
                         {watchIcon}
                     </li>
                     <li>
@@ -80,11 +92,13 @@ const MovieCard = ({ movie }) => {
                     {movie.synopsis || 'Not available'}
                 </li>
                 <ul className='genresContainer'>
-                    {movie.genres.map((genre, index) => <li key={index} className='movieGenre'>{genre}</li>)}
+                    {movie.genres.map((genre, index) => (
+                        <li key={index} className='movieGenre'>{genre}</li>
+                    ))}
                 </ul>
             </ul>
         </div>
     );
-}
+};
 
 export default MovieCard;
